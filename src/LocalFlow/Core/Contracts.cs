@@ -28,6 +28,7 @@ public interface ITextCleanupService { string Clean(string text); }
 public interface IRecordingSoundService
 {
     Task PlayStartAsync(CancellationToken cancellationToken);
+    Task PlayEndAsync(CancellationToken cancellationToken);
 }
 public interface IConfigurableTranscriptionService : ITranscriptionService
 {

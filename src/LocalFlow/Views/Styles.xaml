@@ -3,7 +3,7 @@
  <SolidColorBrush x:Key="Ink" Color="#1E2940"/>
  <SolidColorBrush x:Key="Muted" Color="#68748A"/>
  <SolidColorBrush x:Key="Accent" Color="#6845DE"/>
- <Style TargetType="Window"><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="14"/><Setter Property="Background" Value="#F5F6FB"/><Setter Property="Foreground" Value="{StaticResource Ink}"/></Style>
+ <Style TargetType="Window"><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="14"/><Setter Property="Background" Value="#F6F4FD"/><Setter Property="Foreground" Value="{StaticResource Ink}"/></Style>
  <Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap"/></Style>
  <Style TargetType="Button">
   <Setter Property="Padding" Value="16,10"/><Setter Property="Margin" Value="0,0,8,0"/><Setter Property="Background" Value="White"/><Setter Property="Foreground" Value="{StaticResource Ink}"/><Setter Property="BorderBrush" Value="#DDE1EC"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Cursor" Value="Hand"/><Setter Property="FontWeight" Value="SemiBold"/>
@@ -27,7 +27,7 @@
  <Style TargetType="TabItem"><Setter Property="Foreground" Value="#B7C5DC"/><Setter Property="Margin" Value="12,3"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/>
   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem"><Border x:Name="Nav" Background="Transparent" CornerRadius="9" Padding="14,13"><ContentPresenter ContentSource="Header" RecognizesAccessKey="True"/></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="Nav" Property="Background" Value="#2A3151"/><Setter Property="Foreground" Value="#FFFFFF"/><Setter Property="FontWeight" Value="SemiBold"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Nav" Property="Background" Value="#25314B"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Nav" Property="BorderBrush" Value="#5DD8E9"/><Setter TargetName="Nav" Property="BorderThickness" Value="1"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
  </Style>
- <Style x:Key="Card" TargetType="Border"><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#E6E9F2"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="16"/><Setter Property="Padding" Value="24"/><Setter Property="Margin" Value="0,0,0,18"/></Style>
+ <Style x:Key="Card" TargetType="Border"><Setter Property="Background" Value="#FCFBFE"/><Setter Property="BorderBrush" Value="#E7E2F9"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="16"/><Setter Property="Padding" Value="24"/><Setter Property="Margin" Value="0,0,0,18"/></Style>
  <Style x:Key="Heading" TargetType="TextBlock"><Setter Property="FontSize" Value="20"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Margin" Value="0,0,0,10"/></Style>
  <Style x:Key="PageTitle" TargetType="TextBlock" BasedOn="{StaticResource Heading}"><Setter Property="FontSize" Value="28"/><Setter Property="Margin" Value="0,0,0,5"/></Style>
  <Style x:Key="Caption" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource Muted}"/><Setter Property="FontSize" Value="12"/></Style>

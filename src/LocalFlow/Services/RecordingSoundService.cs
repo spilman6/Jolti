@@ -4,10 +4,13 @@ namespace LocalFlow.Services;
 
 public sealed class RecordingSoundService : IRecordingSoundService
 {
-    public Task PlayStartAsync(CancellationToken cancellationToken) => Task.Run(async () =>
+    public Task PlayStartAsync(CancellationToken cancellationToken) => PlayAsync("bloop.mp3", cancellationToken);
+    public Task PlayEndAsync(CancellationToken cancellationToken) => PlayAsync("bloop_end.mp3", cancellationToken);
+
+    private static Task PlayAsync(string fileName, CancellationToken cancellationToken) => Task.Run(async () =>
     {
         cancellationToken.ThrowIfCancellationRequested();
-        using var audio = new AudioFileReader(Path.Combine(AppContext.BaseDirectory, "Assets", "bloop.mp3"));
+        using var audio = new AudioFileReader(Path.Combine(AppContext.BaseDirectory, "Assets", fileName));
         using var output = new WaveOutEvent();
         var finished = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         output.PlaybackStopped += (_, e) =>

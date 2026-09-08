@@ -171,6 +171,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         if (!_recording) return;
         _soundPlayback?.Cancel();
         _recording = false; _busy = true; _limit.Stop();
+        if (_saved.RecordingSoundEnabled && _sound != null) PlayEndSound();
         _processing = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
         _processing.CancelAfter(TimeSpan.FromMinutes(5));
         Refresh();
@@ -214,6 +215,15 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         try { await _sound!.PlayStartAsync(playback.Token); }
         catch (OperationCanceledException) { }
         catch (Exception) { if (_recording && _soundPlayback == playback) Message += " Start sound unavailable; recording continues."; }
+        finally { if (_soundPlayback == playback) _soundPlayback = null; playback.Dispose(); }
+    }
+    private async void PlayEndSound()
+    {
+        var playback = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
+        _soundPlayback = playback;
+        try { await _sound!.PlayEndAsync(playback.Token); }
+        catch (OperationCanceledException) { }
+        catch (Exception) { }
         finally { if (_soundPlayback == playback) _soundPlayback = null; playback.Dispose(); }
     }
     private void Error(string message) { Status = "Error"; Message = message; }

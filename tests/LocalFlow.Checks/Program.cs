@@ -25,6 +25,11 @@ internal static class Program
                 var samples = new float[4096];
                 Check(cue.TotalTime.TotalSeconds > 0 && cue.TotalTime.TotalSeconds < 10 && cue.Read(samples, 0, samples.Length) > 0, "Bundled bloop decodes as a short local audio cue");
             }
+            using (var endCue = new NAudio.Wave.AudioFileReader(Path.Combine(AppContext.BaseDirectory, "Assets", "bloop_end.mp3")))
+            {
+                var samples = new float[4096];
+                Check(endCue.TotalTime.TotalSeconds > 0 && endCue.TotalTime.TotalSeconds < 10 && endCue.Read(samples, 0, samples.Length) > 0, "Bundled end bloop decodes as a short local audio cue");
+            }
             var input = new TestInput();
             var direct = new TextPaster(input);
             var unicode = "Hello é 世界 👋\nnext";
@@ -113,6 +118,7 @@ internal static class Program
             Check(fakeSound.Plays == 1, "Start cue plays once after capture starts");
             fakeHotkey.Release(); PumpUntil(() => model.CanEdit);
             Check(model.Status == "Text inserted" && fakePaster.Text == "This is a jolti test transcript.", "Release transcribes, cleans and pastes");
+            Check(fakeSound.EndPlays == 1, "End cue plays once after hotkey release");
             Check(history.Load().Count == 0, "History disabled means no transcript file");
             fakeSound.Fail = true;
             fakeHotkey.Press();
@@ -211,8 +217,10 @@ internal static class Program
     private sealed class TestSound : IRecordingSoundService
     {
         public int Plays;
+        public int EndPlays;
         public bool Fail;
         public Task PlayStartAsync(CancellationToken token) { Plays++; if (Fail) throw new IOException("Test speaker failure"); return Task.CompletedTask; }
+        public Task PlayEndAsync(CancellationToken token) { EndPlays++; if (Fail) throw new IOException("Test speaker failure"); return Task.CompletedTask; }
     }
     private sealed class TestInput : ITextInputBackend
     {
