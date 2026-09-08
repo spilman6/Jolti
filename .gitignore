@@ -1,0 +1,23 @@
+**/bin/
+**/obj/
+.vs/
+*.user
+artifacts/
+
+# Local/private data and model weights
+models/
+recordings/
+transcripts/
+settings.json
+history.json
+history.json.tmp
+*.wav
+*.gguf
+ggml-*.bin
+.env
+.env.*
+*.pfx
+*.p12
+*.key
+.codex/
+.agents/
