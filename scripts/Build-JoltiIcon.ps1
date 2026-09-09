@@ -2,7 +2,7 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $root = Split-Path $PSScriptRoot -Parent
-$destination = Join-Path $root 'src/LocalFlow/Assets'
+$destination = Join-Path $root 'src/Jolti/Assets'
 New-Item -ItemType Directory -Force -Path $destination | Out-Null
 $source = [Drawing.Image]::FromFile((Join-Path $root 'JOLTY.png'))
 $frames = @()

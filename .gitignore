@@ -21,3 +21,6 @@ ggml-*.bin
 *.key
 .codex/
 .agents/
+
+dictionary.json
+dictionary.json.tmp

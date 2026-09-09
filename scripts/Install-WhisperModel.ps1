@@ -5,7 +5,7 @@ $sourcePath = (Resolve-Path -LiteralPath $Source).Path
 if ((Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash -ne $expected) {
     throw 'SHA-256 verification failed. Supply the approved, complete ggml-base.en.bin model.'
 }
-$destination = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'LocalFlow\models'
+$destination = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Jolti\models'
 New-Item -ItemType Directory -Force -Path $destination | Out-Null
 $directory = [IO.DirectoryInfo]::new($destination)
 while ($null -ne $directory) {
