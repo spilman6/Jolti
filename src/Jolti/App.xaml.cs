@@ -25,6 +25,7 @@ public partial class App : Application
         services.AddSingleton<ISettingsStore>(s => s.GetRequiredService<LocalStorage>());
         services.AddSingleton<IHistoryRepository>(s => s.GetRequiredService<LocalStorage>());
         services.AddSingleton<IDictionaryRepository>(s => s.GetRequiredService<LocalStorage>());
+        services.AddSingleton<ISnippetRepository>(s => s.GetRequiredService<LocalStorage>());
         services.AddSingleton<IAudioRecorder, AudioRecorder>();
         services.AddSingleton<IRecordingSoundService, RecordingSoundService>();
         services.AddSingleton<ITranscriptionService, WhisperTranscriptionService>();

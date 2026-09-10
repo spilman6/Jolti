@@ -8,11 +8,11 @@ A private, local Windows voice dictation app built with C# / .NET 8 / WPF. Hold 
 2. On a fresh clone, install the .NET 8 SDK and publish first. Generated builds and model weights are not included in Git:
 
 ```powershell
-dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-dictionary-win-x64
+dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-wide-pill-win-x64
 .\Start-Jolti.ps1
 ```
 
-Or launch `artifacts/publish/jolti-dictionary-win-x64/Jolti.exe` directly. Keep the entire publish folder together. It includes .NET 8 and the native CPU runtime. The model must already be installed under %LOCALAPPDATA%\Jolti\models.
+Or launch `artifacts/publish/jolti-wide-pill-win-x64/Jolti.exe` directly. Keep the entire publish folder together. It includes .NET 8 and the native CPU runtime. The model must already be installed under %LOCALAPPDATA%\Jolti\models.
 
 3. Open **Settings**, choose **Local Whisper** under Transcription mode, and click **Save settings**. Existing settings preserve your old Fake mode until you change it. The model path defaults to `%LOCALAPPDATA%\Jolti\models\ggml-base.en.bin`. If an older saved setting points elsewhere, use **Browse model...** to select that installed file. Paths outside this folder are rejected.
 4. Focus an ordinary text field in Notepad. Hold **Ctrl + Win**, speak clearly, and release both keys. Remain in that app while processing. Your actual words should appear.
@@ -45,7 +45,7 @@ To obtain the English model again, explicitly run:
 This downloads about 148 MB from the [whisper.cpp model repository](https://huggingface.co/ggerganov/whisper.cpp) and verifies SHA-256 before accepting it. No audio or transcripts are sent. The app has no downloader, automatic model acquisition, or cloud fallback.
 
 ```powershell
-dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-dictionary-win-x64
+dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-wide-pill-win-x64
 .\scripts\Install-WhisperModel.ps1 -Source artifacts/models/ggml-base.en.bin
 ```
 
@@ -87,7 +87,7 @@ Fake mode remains explicitly available for regression testing and returns a fixe
 - Text inserted means Windows accepted the input events, not that the destination confirmed insertion. Elevated apps, secure desktops, games, remote sessions, and apps that reject Unicode simulated input may require manual pasting. Password fields are not inspected or identified: select an ordinary text field before recording.
 - Microphone indices may change after reconnecting devices. Refresh/reselect if needed. Devices that reject 16 kHz capture produce an error.
 - The verified model stays loaded between recordings for speed; each recording uses a fresh processor with prior context disabled. There is no streaming transcription, GPU acceleration, model manager, installer, auto-update, or auto-start.
-- The indicator is a small navy pill centered above the primary screen taskbar. All states keep a small 70 by 26 capsule with a 12-unit corner radius and no text labels. The dot is red during recording, yellow during transcription, and green after insertion. There are no hover effects. Matching red bars animate during recording and yellow bars pulse during transcription. This is a decorative activity pattern, not an audio-level meter. It remains click-through, never takes focus, and respects the Windows client-area animation preference.
+- The indicator is a small navy pill centered above the primary screen taskbar. The capsule is 40 by 8 at rest and smoothly grows to 80 by 32 while recording, with thicker activity bars reaching 24 units tall, then shrinks on release over 180 ms. Its bottom edge stays anchored, with rounded ends and no text labels. With Windows animations disabled, size changes are immediate. The dot is red during recording, yellow during transcription, and green after insertion. There are no hover effects. Matching red bars animate during recording and yellow bars pulse during transcription. This is a decorative activity pattern, not an audio-level meter. It remains click-through, never takes focus, and respects the Windows client-area animation preference.
 
 ## Validation
 
@@ -117,9 +117,9 @@ The previous real microphone-to-paste workflow was manually confirmed. This upda
 
 Direct input preserves the clipboard so you can dictate and then press Ctrl+V to paste what you copied earlier. Some controls may ignore Unicode newlines or other characters. A partial insertion is reported without retrying text; review the destination before retrying to avoid duplicates. Copy buttons still intentionally replace the clipboard.
 
-Jolti's source paths, namespaces, and solution file (`src/Jolti`, `Jolti.sln`, `tests/Jolti.Checks`) now match the Jolti name throughout. Settings, history, and the installed model live under `%LOCALAPPDATA%\Jolti` rather than the earlier `%LOCALAPPDATA%\LocalFlow`, so upgrading from an older build starts with empty settings and history and needs the model reinstalled: rerun `scripts/Install-WhisperModel.ps1 -Source <path to your existing ggml-base.en.bin>` to reuse the file already on disk, or `scripts/Get-WhisperModel.ps1` to download it again. The legacy `Start-LocalFlow.ps1` launcher still forwards to `Start-Jolti.ps1` for old shortcuts. The single-instance guard now only prevents multiple Jolti instances from running together.
+Jolti's source paths, namespaces, and solution file (`src/Jolti`, `Jolti.sln`, `tests/Jolti.Checks`) match the Jolti name throughout. Settings, history, and the installed model live under `%LOCALAPPDATA%\Jolti`. The single-instance guard only prevents multiple Jolti instances from running together.
 
-The supplied JOLTY.png artwork is packaged in src/Jolti/Assets/Jolti.ico for the executable, window, and tray. Run ./scripts/Build-JoltiIcon.ps1 to regenerate its eight resolution variants after updating the source image.
+The supplied Jolti.png artwork is packaged in src/Jolti/Assets/Jolti.ico for the executable, window, and tray. Run ./scripts/Build-JoltiIcon.ps1 to regenerate its eight resolution variants after updating the source image.
 
 The supplied bloop.mp3 is bundled under Assets and plays through the default Windows output device after microphone capture starts successfully. Settings > Play a bloop when recording starts is enabled by default; save settings after changing it. Playback is asynchronous, stops when capture ends, and a playback error does not stop dictation. The cue is local and makes no network requests. Speakers may feed the cue back into the microphone; headphones or muting the cue avoid this. No microphone audio is saved. Validation: 36 checks passed, including MP3 decoding, once-per-start behavior, playback failure recovery, and persistent muting; speaker playback itself requires a manual check.
 
@@ -140,3 +140,13 @@ Open Dictionary, enter the preferred spelling (for example Jolti) and what Jolti
 Corrections apply after optional cleanup and before insertion/history saving, including when cleanup is off. Matching ignores case, respects whole-word boundaries, and prefers longer phrases. Replacements are literal and do not cascade. Raw transcripts remain unchanged. This is a local correction list, not speech-model training; unlisted mishearings are not corrected automatically.
 
 Up to 500 entries of 120 characters each are saved immediately in %LOCALAPPDATA%\Jolti\dictionary.json, independently of settings and transcript history. Delete All History preserves this dictionary. Remove entries on the Dictionary page.
+
+## Voice snippets
+
+Open **Snippets**, enter a phrase you will say (such as `my meeting link`) and the text to insert, then choose **Save snippet**. Select a saved snippet to edit or delete it; **New snippet** clears the editor. Changes apply immediately to future dictations.
+
+Triggers match whole words and phrases, ignoring case, after cleanup and dictionary corrections. Longer triggers win and expansions do not trigger other snippets. Saying only a trigger, optionally followed by sentence-ending punctuation, inserts exactly the saved text. Inside a sentence, surrounding text and punctuation remain. Choose distinctive triggers and avoid dictionary corrections that change them.
+
+Saved text preserves capitalization, spacing, tabs, and line breaks, including when cleanup is enabled. Destination apps may handle tabs or newlines differently. Up to 500 snippets, with triggers of 120 characters and expansions of 4,000 characters, are stored locally as plain JSON in `%LOCALAPPDATA%\Jolti\snippets.json`. No additional model or network access is used. Delete All History preserves snippets; delete them on the Snippets page. Optional history records the original transcript and the expanded final text.
+
+Validation for snippets: Release build completed with zero warnings and errors; all 65 regression checks passed on the bundled .NET 8 runtime. All six pages rendered, and the Snippets page was visually inspected. Live microphone-to-target acceptance remains a manual check. The launcher now opens the snippets portable build; exit the previous tray instance before restarting.

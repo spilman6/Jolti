@@ -161,6 +161,42 @@ internal static class Program
             Check(storage.LoadDictionary().Count == 0, "Dictionary entry deletion persists");
             model.PreferredSpelling = "Jolti"; model.HeardWord = "jolty"; model.SaveWordCommand.Execute(null);
 
+            var snippets = new[] {
+                new SnippetEntry(Guid.NewGuid(), "my link", "https://example.org/$meet"),
+                new SnippetEntry(Guid.NewGuid(), "my link signature", "Best,\n  Jolti\nmy link") };
+            Check(SnippetExpansion.Apply("MY LINK.", snippets) == snippets[0].Expansion, "Standalone snippet drops transcription punctuation and preserves literal URL");
+            Check(SnippetExpansion.Apply("my link signature!", snippets) == snippets[1].Expansion, "Longest snippet preserves multiline text and does not cascade");
+            Check(SnippetExpansion.Apply("Use my link, not my links or xmy link.", snippets) == "Use https://example.org/$meet, not my links or xmy link.", "Inline snippets respect whole words and preserve surrounding punctuation");
+            Check(SnippetExpansion.Apply("Unchanged.", Array.Empty<SnippetEntry>()) == "Unchanged.", "Empty snippet library leaves dictation unchanged");
+            model.SnippetTrigger = "jolti test transcript"; model.SnippetText = "Saved\n  $Text";
+            model.SaveSnippetCommand.Execute(null);
+            Check(storage.LoadSnippets().Single().Expansion == "Saved\n  $Text", "Snippet storage round trip preserves whitespace");
+            model.SnippetTrigger = "JOLTI TEST TRANSCRIPT"; model.SnippetText = "Duplicate"; model.SaveSnippetCommand.Execute(null);
+            Check(model.Status == "Error" && storage.LoadSnippets().Count == 1, "Duplicate snippet trigger rejected without overwriting");
+            model.NewSnippetCommand.Execute(null); model.SnippetText = " "; model.SaveSnippetCommand.Execute(null);
+            Check(model.Status == "Error" && storage.LoadSnippets().Count == 1, "Empty snippet fields rejected");
+            model.SnippetTrigger = "too long"; model.SnippetText = new string('x', 4001); model.SaveSnippetCommand.Execute(null);
+            Check(model.Status == "Error" && storage.LoadSnippets().Count == 1, "Oversized snippet rejected");
+            model.SelectedSnippet = model.Snippets.Single(); model.SnippetText = "Updated\n  $Text"; model.SaveSnippetCommand.Execute(null);
+            Check(storage.LoadSnippets().Single().Expansion == "Updated\n  $Text", "Selected snippet can be edited");
+            fakeHotkey.Press();
+            Check(!model.SaveSnippetCommand.CanExecute(null) && !model.NewSnippetCommand.CanExecute(null), "Snippet editing disabled during recording");
+            fakeHotkey.Release(); PumpUntil(() => model.CanEdit);
+            Check(fakePaster.Text.Contains("Updated\n  $Text") && model.RawTranscript.Contains("jolti test transcript") && history.Load()[0].FinalText == fakePaster.Text, "Snippets expand with cleanup off before insertion and history, preserving raw speech");
+            model.CleanupEnabled = true; model.SaveSettingsCommand.Execute(null);
+            fakeHotkey.Press(); fakeHotkey.Release(); PumpUntil(() => model.CanEdit);
+            Check(fakePaster.Text.Contains("Updated\n  $Text"), "Cleanup does not alter saved snippet formatting");
+            model.ClearHistoryCommand.Execute(null);
+            Check(storage.LoadSnippets().Count == 1, "Deleting history preserves snippets");
+            using (var reloaded = new MainViewModel(new TestAudio(), new FakeTranscriptionService(), cleanup, new TestPaster(), new TestHotkey(), storage, history))
+            {
+                reloaded.Initialize();
+                Check(reloaded.Snippets.Single().Expansion == "Updated\n  $Text", "Snippets reload at startup");
+            }
+            model.SelectedSnippet = model.Snippets.Single(); model.DeleteSnippetCommand.Execute(null);
+            Check(storage.LoadSnippets().Count == 0 && model.SnippetTrigger == "" && model.SnippetText == "", "Snippet deletion persists and clears editor");
+            model.SnippetTrigger = "my signature"; model.SnippetText = "Best regards,\nJolti"; model.SaveSnippetCommand.Execute(null);
+
             // Render only our own unshown WPF visual tree, never the user's screen or other windows.
             var window = new MainWindow(model);
             var content = (FrameworkElement)window.Content;
@@ -173,7 +209,7 @@ internal static class Program
                 var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
                 using var output = File.Create(Path.Combine(root, $"page-{i}.png")); encoder.Save(output);
             }
-            Check(true, "All five WPF pages load and render");
+            Check(true, "All six WPF pages load and render");
             // Review populated content as well as empty pages at the new default window size.
             typeof(MainViewModel).GetProperty(nameof(MainViewModel.FinalText))!.SetValue(model, "Let's make room for the next great idea. I'll send the notes after our meeting.");
             typeof(MainViewModel).GetProperty(nameof(MainViewModel.RawTranscript))!.SetValue(model, "um let's make room for the next great idea i'll send the notes after our meeting");

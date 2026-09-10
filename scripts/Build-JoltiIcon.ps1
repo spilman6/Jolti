@@ -4,7 +4,7 @@ Add-Type -AssemblyName System.Drawing
 $root = Split-Path $PSScriptRoot -Parent
 $destination = Join-Path $root 'src/Jolti/Assets'
 New-Item -ItemType Directory -Force -Path $destination | Out-Null
-$source = [Drawing.Image]::FromFile((Join-Path $root 'JOLTY.png'))
+$source = [Drawing.Image]::FromFile((Join-Path $root 'Jolti.png'))
 $frames = @()
 try {
     foreach ($size in @(16, 20, 24, 32, 48, 64, 128, 256)) {

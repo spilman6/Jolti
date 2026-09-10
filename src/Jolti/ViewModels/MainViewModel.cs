@@ -68,11 +68,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public RelayCommand DeleteHistoryCommand { get; }
     public RelayCommand ClearHistoryCommand { get; }
     public MainViewModel(IAudioRecorder audio, ITranscriptionService transcriber, ITextCleanupService cleanup,
-        ITextPaster paster, IHotkeyService hotkey, ISettingsStore store, IHistoryRepository history, IRecordingSoundService? sound = null, IDictionaryRepository? dictionary = null)
+        ITextPaster paster, IHotkeyService hotkey, ISettingsStore store, IHistoryRepository history, IRecordingSoundService? sound = null, IDictionaryRepository? dictionary = null, ISnippetRepository? snippets = null)
     {
         (_audio, _transcriber, _cleanup, _paster, _hotkey, _store, _history) = (audio, transcriber, cleanup, paster, hotkey, store, history);
         _sound = sound;
         InitializeDictionary(dictionary ?? store as IDictionaryRepository);
+        InitializeSnippets(snippets ?? store as ISnippetRepository);
         ToggleCommand = new(_ => Toggle(), () => !_busy && !_countdown);
         CancelCommand = new(_ => _processing?.Cancel(), () => _busy && _processing != null);
         SaveSettingsCommand = new(_ => Guard(SaveSettings), () => CanEdit);
@@ -100,6 +101,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // Verify once at launch so a hotkey press does not hash the model on the UI thread.
         Guard(() => { if (_transcriber is IConfigurableTranscriptionService service) service.Validate(); });
         Guard(LoadDictionary);
+        Guard(LoadSnippets);
         Guard(RefreshMicrophones);
         Guard(() => { foreach (var entry in _history.Load()) History.Add(entry); });
         Guard(() => _hotkey.Configure(_saved.Hotkey));
@@ -190,6 +192,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _processing.Token.ThrowIfCancellationRequested();
             FinalText = _saved.CleanupEnabled ? _cleanup.Clean(RawTranscript) : RawTranscript;
             FinalText = DictionaryCorrections.Apply(FinalText, DictionaryEntries);
+            FinalText = SnippetExpansion.Apply(FinalText, Snippets);
             if (string.IsNullOrWhiteSpace(FinalText)) throw new InvalidOperationException("No text was returned.");
             string? historyError = null;
             if (_saved.SaveHistory)
@@ -208,6 +211,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
     private void Refresh()
     {
+        SaveSnippetCommand.Refresh(); DeleteSnippetCommand.Refresh(); NewSnippetCommand.Refresh();
         SaveWordCommand.Refresh(); DeleteWordCommand.Refresh(); NewWordCommand.Refresh();
         Notify(nameof(CanEdit)); Notify(nameof(RecordButtonText));
         Notify(nameof(IsProcessing));

@@ -1,1 +1,0 @@
-& (Join-Path $PSScriptRoot 'Start-Jolti.ps1')

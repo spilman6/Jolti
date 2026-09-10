@@ -80,6 +80,25 @@
      <TextBlock Text="Only exact words and phrases are corrected, ignoring letter case. This does not train the speech model. Your dictionary is stored on this device, separately from transcript history." Style="{StaticResource Caption}" Margin="0,16,0,16"/>
     </StackPanel></ScrollViewer>
    </TabItem>
+   <TabItem><TabItem.Header><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8A5;" Margin="0,2,12,0"/><TextBlock Text="Snippets"/></StackPanel></TabItem.Header>
+    <ScrollViewer Foreground="{StaticResource Ink}" FontWeight="Normal" VerticalScrollBarVisibility="Auto"><StackPanel>
+     <TextBlock Text="Say less. Write more." Style="{StaticResource PageTitle}"/>
+     <TextBlock Text="Turn a short phrase into a signature, link, or reusable reply." Foreground="{StaticResource Muted}" Margin="0,0,0,20"/>
+     <Border Style="{StaticResource Card}"><StackPanel IsEnabled="{Binding CanEdit}">
+      <TextBlock Text="Add or edit a snippet" Style="{StaticResource Heading}"/>
+      <TextBlock Text="Phrase you will say"/><TextBox Text="{Binding SnippetTrigger, UpdateSourceTrigger=PropertyChanged}" MaxLength="120" Margin="0,8,0,14" AutomationProperties.Name="Snippet trigger"/>
+      <TextBlock Text="Text to insert"/><TextBox Text="{Binding SnippetText, UpdateSourceTrigger=PropertyChanged}" MaxLength="4000" AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Height="130" Margin="0,8,0,10" AutomationProperties.Name="Snippet text"/>
+      <TextBlock Text="Example: say &#x201C;my meeting link&#x201D; to insert your saved URL. Line breaks, spacing, and capitalization are kept." Style="{StaticResource Caption}" Margin="0,0,0,18"/>
+      <WrapPanel><Button Content="Save snippet" Command="{Binding SaveSnippetCommand}" Style="{StaticResource Primary}"/><Button Content="New snippet" Command="{Binding NewSnippetCommand}"/><Button Content="Delete selected" Command="{Binding DeleteSnippetCommand}" Style="{StaticResource Danger}"/></WrapPanel>
+     </StackPanel></Border>
+     <TextBlock Text="{Binding Snippets.Count, StringFormat='Saved snippets · {0}'}" Style="{StaticResource Heading}"/>
+     <TextBlock Text="Add your first snippet above, or select a saved snippet to edit it." Style="{StaticResource Caption}" Margin="0,0,0,12"/>
+     <ListBox ItemsSource="{Binding Snippets}" SelectedItem="{Binding SelectedSnippet}" IsEnabled="{Binding CanEdit}" Background="Transparent" BorderThickness="0" MaxHeight="280" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" AutomationProperties.Name="Saved snippets">
+      <ListBox.ItemTemplate><DataTemplate><Border Background="#192840" CornerRadius="12" Padding="14" Margin="0,3"><StackPanel><TextBlock Text="{Binding Trigger}" FontWeight="SemiBold" FontSize="16"/><TextBlock Text="{Binding Expansion}" Style="{StaticResource Caption}" MaxHeight="60" TextTrimming="CharacterEllipsis" Margin="0,5,0,0"/></StackPanel></Border></DataTemplate></ListBox.ItemTemplate>
+     </ListBox>
+     <TextBlock Text="Triggers match whole words, ignoring letter case, after dictionary corrections. Choose distinctive phrases. Snippets stay on this device in snippets.json, separately from history. Delete All History keeps your snippets." Style="{StaticResource Caption}" Margin="0,16,0,16"/>
+    </StackPanel></ScrollViewer>
+   </TabItem>
   </TabControl>
   <Border Grid.Row="1" Background="#152238" BorderBrush="#30425E" BorderThickness="0,1,0,0" Padding="24,12"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,0"><Ellipse Fill="{Binding StatusColor}" Width="8" Height="8" Margin="0,0,9,0"/><TextBlock Text="{Binding Status}" FontWeight="SemiBold"/></StackPanel><TextBlock Grid.Column="1" Text="{Binding Message}" Foreground="{StaticResource Muted}" FontSize="12" VerticalAlignment="Center" MaxHeight="68" TextTrimming="CharacterEllipsis" ToolTip="{Binding Message}"/></Grid></Border>
  </Grid>

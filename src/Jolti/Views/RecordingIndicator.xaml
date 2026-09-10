@@ -1,7 +1,7 @@
-<Window x:Class="Jolti.Views.RecordingIndicator" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Style="{StaticResource {x:Type Window}}" Width="82" Height="38" WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False" Topmost="True" AllowsTransparency="True" Background="Transparent" IsHitTestVisible="False" Title="Jolti recording status">
- <Border x:Name="Pill" Margin="6" Background="#172D40" BorderBrush="#35566A" BorderThickness="1" CornerRadius="12" Padding="12,4">
+<Window x:Class="Jolti.Views.RecordingIndicator" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Style="{StaticResource {x:Type Window}}" Width="52" Height="28" WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False" Topmost="True" AllowsTransparency="True" Background="Transparent" IsHitTestVisible="False" Title="Jolti recording status">
+ <Border x:Name="Pill" ClipToBounds="True" Margin="6" Width="40" Height="10" HorizontalAlignment="Center" VerticalAlignment="Bottom" Background="#172D40" BorderBrush="#35566A" BorderThickness="1" CornerRadius="3" Padding="4,1">
   <Grid>
-   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
    <Grid x:Name="DotHalo" Width="14" Height="14" VerticalAlignment="Center" Margin="0,0,10,0">
     <Ellipse Fill="#183F49"/>
     <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="{Binding StatusColor}"/>
@@ -10,7 +10,7 @@
 
     <TextBlock Text="{Binding Status}" Foreground="#F0F7FA" FontSize="12" FontWeight="SemiBold"/>
    </StackPanel>
-   <StackPanel x:Name="WaveBars" Grid.Column="2" Orientation="Horizontal" Height="26" VerticalAlignment="Center" Margin="8,0,0,0" AutomationProperties.Name="Recording activity animation"/>
+   <UniformGrid x:Name="WaveBars" Grid.Column="2" Rows="1" Height="26" VerticalAlignment="Center" Margin="8,0,0,0" AutomationProperties.Name="Recording activity animation"/>
   </Grid>
  </Border>
 </Window>

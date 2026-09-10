@@ -3,7 +3,7 @@ using Jolti.Core;
 
 namespace Jolti.Infrastructure;
 
-public sealed class LocalStorage : ISettingsStore, IHistoryRepository, IDictionaryRepository
+public sealed class LocalStorage : ISettingsStore, IHistoryRepository, IDictionaryRepository, ISnippetRepository
 {
     public static string DataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Jolti");
     private readonly string _directory;
@@ -31,6 +31,8 @@ public sealed class LocalStorage : ISettingsStore, IHistoryRepository, IDictiona
 
     public IReadOnlyList<DictionaryEntry> LoadDictionary() => Read(Path.Combine(_directory, "dictionary.json"), new List<DictionaryEntry>());
     public void SaveDictionary(IReadOnlyList<DictionaryEntry> entries) => Write(Path.Combine(_directory, "dictionary.json"), entries);
+    public IReadOnlyList<SnippetEntry> LoadSnippets() => Read(Path.Combine(_directory, "snippets.json"), new List<SnippetEntry>());
+    public void SaveSnippets(IReadOnlyList<SnippetEntry> entries) => Write(Path.Combine(_directory, "snippets.json"), entries);
     public AppSettings Load() => Read(SettingsPath, new AppSettings());
     public void Save(AppSettings settings) => Write(SettingsPath, settings);
     IReadOnlyList<HistoryEntry> IHistoryRepository.Load() => Read(HistoryPath, new List<HistoryEntry>());
