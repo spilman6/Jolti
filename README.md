@@ -8,13 +8,13 @@ A private, local Windows voice dictation app built with C# / .NET 8 / WPF. Hold 
 2. On a fresh clone, install the .NET 8 SDK and publish first. Generated builds and model weights are not included in Git:
 
 ```powershell
-dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-wide-pill-win-x64
+dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-settings-spacing-win-x64
 .\Start-Jolti.ps1
 ```
 
-Or launch `artifacts/publish/jolti-wide-pill-win-x64/Jolti.exe` directly. Keep the entire publish folder together. It includes .NET 8 and the native CPU runtime. The model must already be installed under %LOCALAPPDATA%\Jolti\models.
+Or launch `artifacts/publish/jolti-settings-spacing-win-x64/Jolti.exe` directly. Keep the entire publish folder together. It includes .NET 8 and the native CPU runtime. Download a model in Settings before your first dictation.
 
-3. Open **Settings**, choose **Local Whisper** under Transcription mode, and click **Save settings**. Existing settings preserve your old Fake mode until you change it. The model path defaults to `%LOCALAPPDATA%\Jolti\models\ggml-base.en.bin`. If an older saved setting points elsewhere, use **Browse model...** to select that installed file. Paths outside this folder are rejected.
+3. Open **Settings**, choose Base, Small, or Medium English and click **Download selected model** if needed, then choose **Local Whisper** under Transcription mode, and click **Save settings**. Existing settings preserve your old Fake mode until you change it. The model path defaults to `%LOCALAPPDATA%\Jolti\models\ggml-base.en.bin`. Choose a model from the Whisper model dropdown to update an older saved path. Paths outside this folder are rejected.
 4. Focus an ordinary text field in Notepad. Hold **Ctrl + Win**, speak clearly, and release both keys. Remain in that app while processing. Your actual words should appear.
 
 The first transcription loads the model. CPU processing can take several seconds depending on your hardware and recording length. **Cancel transcription** stops processing without sending a paste; processing also times out after five minutes. Native model loading must finish before cancellation takes effect.
@@ -26,7 +26,7 @@ Manual **Start in 3 seconds** and the tray's **Start/Stop Dictation** let you re
 - Windows 10/11 x64, microphone, and desktop microphone access enabled under Windows Settings > Privacy & security > Microphone.
 - The portable build includes the .NET 8 runtime. Building from source requires the .NET 8 SDK or a newer SDK capable of targeting .NET 8. Framework-dependent execution also requires the .NET 8 Windows Desktop Runtime.
 - Whisper native libraries may require the [Microsoft Visual C++ x64 Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist). The bundled CPU runtime requires a compatible CPU; no GPU is needed.
-- NuGet dependencies: NAudio 2.2.1, Microsoft.Extensions.DependencyInjection 8.0.1, Whisper.net 1.9.1, and Whisper.net.Runtime 1.9.1. Restore needs network access; the running app does not.
+- NuGet dependencies: NAudio 2.2.1, Microsoft.Extensions.DependencyInjection 8.0.1, Whisper.net 1.9.1, and Whisper.net.Runtime 1.9.1. Restore and explicit model downloads need network access; transcription works offline.
 
 ```powershell
 dotnet restore Jolti.sln
@@ -34,7 +34,7 @@ dotnet build Jolti.sln -c Release --no-restore
 dotnet run --project src/Jolti -c Release --no-build
 ```
 
-Source and portable runs both require the same pre-installed AppData model. Install an already-downloaded model with `./scripts/Install-WhisperModel.ps1 -Source ./artifacts/models/ggml-base.en.bin`. The installer is offline and checks SHA-256 before and after copying.
+Source and portable runs use models in AppData. Download Base (148 MB), Small (488 MB), or Medium (1.53 GB) English from Settings, then save settings. Downloads show progress, support cancellation, and verify SHA-256 before installation. Larger models need more memory and CPU time. Install an already-downloaded model with `./scripts/Install-WhisperModel.ps1 -Source ./artifacts/models/ggml-base.en.bin`. The installer is offline and checks SHA-256 before and after copying.
 
 To obtain the English model again, explicitly run:
 
@@ -42,10 +42,10 @@ To obtain the English model again, explicitly run:
 .\scripts\Get-WhisperModel.ps1
 ```
 
-This downloads about 148 MB from the [whisper.cpp model repository](https://huggingface.co/ggerganov/whisper.cpp) and verifies SHA-256 before accepting it. No audio or transcripts are sent. The app has no downloader, automatic model acquisition, or cloud fallback.
+This downloads about 148 MB from the [whisper.cpp model repository](https://huggingface.co/ggerganov/whisper.cpp) and verifies SHA-256 before accepting it. No audio or transcripts are sent. Settings also offers explicit model downloads. There is no automatic model acquisition or cloud fallback.
 
 ```powershell
-dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-wide-pill-win-x64
+dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-settings-spacing-win-x64
 .\scripts\Install-WhisperModel.ps1 -Source artifacts/models/ggml-base.en.bin
 ```
 
@@ -76,7 +76,7 @@ Fake mode remains explicitly available for regression testing and returns a fixe
 - Only modifier states are polled for push-to-talk and safe pasting. There is no keyboard hook or character-key logging. The original window handle and process ID are used transiently to check the destination.
 - Dictation never reads or changes the clipboard and has no clipboard fallback. Only explicit Copy buttons replace the previous clipboard without reading/restoring it. Windows clipboard-history/cloud exclusion flags are set; third-party clipboard managers may ignore them. Other apps can still read the current clipboard.
 - Direct insertion uses one SendInput Unicode sequence after checking focus and waiting for modifiers to be released. It preserves UTF-16 characters, including surrogate pairs, and does not send Ctrl+V. It never forces focus or bypasses Windows privilege boundaries.
-- Whisper uses only the CPU runtime and local models under `%LOCALAPPDATA%\Jolti\models`. Model files and directory ancestors cannot be symbolic links or junctions. SHA-256 is verified once per cached model; the model remains opened with read-only sharing throughout inference to prevent ordinary writes/replacement. No runtime downloader, network requests, or audio uploads occur. Model acquisition and installation are separate, explicitly invoked setup steps.
+- Whisper uses only the CPU runtime and local models under `%LOCALAPPDATA%\Jolti\models`. Model files and directory ancestors cannot be symbolic links or junctions. SHA-256 is verified once per cached model; the model remains opened with read-only sharing throughout inference to prevent ordinary writes/replacement. Network requests occur only for explicitly requested model downloads from Hugging Face. No audio or transcripts are uploaded.
 
 ## Known limitations
 

@@ -33,7 +33,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public string[] Hotkeys => HotkeyService.SupportedHotkeys;
     public string[] TranscriptionModes { get; } = ["Local Whisper", "Fake (test only)"];
     public string TranscriptionMode { get => _transcriptionMode; set { Set(ref _transcriptionMode, value); SettingsChanged(); } }
-    public string ModelPath { get => _modelPath; set { Set(ref _modelPath, value); SettingsChanged(); } }
+    public string ModelPath { get => _modelPath; set { Set(ref _modelPath, value); Notify(nameof(SelectedModel)); RefreshModelState(true); SettingsChanged(); } }
     public string ActiveHotkey => _saved.Hotkey;
     public bool IsTestMode => _saved.TranscriptionMode == "Fake (test only)";
     public bool IsProcessing => _busy;
@@ -43,7 +43,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         TranscriptionMode != _saved.TranscriptionMode || ModelPath != _saved.ModelPath ||
         CleanupEnabled != _saved.CleanupEnabled || SaveHistory != _saved.SaveHistory || RecordingSoundEnabled != _saved.RecordingSoundEnabled
         ? "You have unsaved changes." : "Your settings are up to date.";
-    private void SettingsChanged() => Notify(nameof(SettingsNote));
+    private void SettingsChanged() { Notify(nameof(SettingsNote)); Notify(nameof(DownloadStatus)); }
     public string ProviderDescription => _saved.TranscriptionMode == "Fake (test only)"
         ? "TEST MODE - A fixed sentence is returned. Select Local Whisper in Settings to recognize speech."
         : "LOCAL WHISPER - Speech is transcribed on this device. No audio is uploaded. Loading the model can take a moment.";
@@ -72,6 +72,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         (_audio, _transcriber, _cleanup, _paster, _hotkey, _store, _history) = (audio, transcriber, cleanup, paster, hotkey, store, history);
         _sound = sound;
+        InitializeModels();
         InitializeDictionary(dictionary ?? store as IDictionaryRepository);
         InitializeSnippets(snippets ?? store as ISnippetRepository);
         ToggleCommand = new(_ => Toggle(), () => !_busy && !_countdown);
@@ -211,6 +212,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
     private void Refresh()
     {
+        DownloadModelCommand.Refresh();
         SaveSnippetCommand.Refresh(); DeleteSnippetCommand.Refresh(); NewSnippetCommand.Refresh();
         SaveWordCommand.Refresh(); DeleteWordCommand.Refresh(); NewWordCommand.Refresh();
         Notify(nameof(CanEdit)); Notify(nameof(RecordButtonText));

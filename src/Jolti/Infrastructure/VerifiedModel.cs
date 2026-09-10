@@ -18,7 +18,7 @@ public sealed class VerifiedModel
         var fullPath = Path.GetFullPath(path);
         if (!string.Equals(Path.GetDirectoryName(fullPath), _root, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Models must be installed in " + _root + ". Run scripts/Install-WhisperModel.ps1 with a pre-downloaded model, then select the installed file.");
-        if (!File.Exists(fullPath)) throw new InvalidOperationException("Whisper model not found. Install the pre-downloaded model using scripts/Install-WhisperModel.ps1.");
+        if (!File.Exists(fullPath)) throw new InvalidOperationException("Whisper model not found. Open Settings, choose a model, and click Download selected model.");
         // Reject junctions and symbolic links rather than allowing paths to escape AppData.
         for (var directory = new DirectoryInfo(_root); directory != null; directory = directory.Parent)
             if ((directory.Attributes & FileAttributes.ReparsePoint) != 0)
@@ -32,8 +32,8 @@ public sealed class VerifiedModel
         try
         {
             var digest = Convert.ToHexString(SHA256.HashData(file));
-            if (!digest.Equals(BaseEnglishSha256, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidDataException("Whisper model SHA-256 verification failed. Only the approved base.en model is currently supported. Reinstall a verified copy.");
+            if (!WhisperModels.All.Any(model => digest.Equals(model.Sha256, StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidDataException("Whisper model SHA-256 verification failed. Choose a verified Base, Small, or Medium English model.");
             file.Position = 0;
             return file;
         }

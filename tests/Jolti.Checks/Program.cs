@@ -113,6 +113,17 @@ internal static class Program
             storage.Save(new AppSettings { TranscriptionMode = "Fake (test only)" });
             using var model = new MainViewModel(fakeAudio, new FakeTranscriptionService(), cleanup, fakePaster, fakeHotkey, storage, history, fakeSound);
             model.Initialize();
+            var originalModelPath = model.ModelPath;
+            foreach (var choice in model.AvailableModels)
+            {
+                model.SelectedModel = choice;
+                Check(model.ModelPath == choice.Path && model.SelectedModel == choice, "Model selection updates the installed path: " + choice.Name);
+            }
+            Check(storage.Load().ModelPath == originalModelPath, "Model selection remains unsaved until Save settings");
+            model.SaveSettingsCommand.Execute(null);
+            Check(storage.Load().ModelPath == model.SelectedModel!.Path, "Selected model persists when settings are saved");
+            model.ModelPath = originalModelPath;
+            model.SaveSettingsCommand.Execute(null);
             var savedHotkey = model.ActiveHotkey;
             model.SelectedHotkey = "Ctrl + Alt";
             Check(model.ActiveHotkey == savedHotkey && model.SettingsNote.Contains("unsaved"), "Draft shortcut does not misrepresent active hotkey");
