@@ -21,7 +21,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly CancellationTokenSource _lifetime = new();
     private readonly DispatcherTimer _limit = new() { Interval = TimeSpan.FromMinutes(2) };
     private AppSettings _saved = new();
-    private bool _recording, _busy, _countdown, _heldRecording;
+    private bool _recording, _busy, _countdown, _heldRecording, _pillRecording;
     private nint _target;
     private string _status = "Idle", _message = "Ready. Focus a text field, then hold Ctrl + Win.", _raw = "", _final = "";
     private int _microphoneId = -1;
@@ -142,7 +142,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Status = "Idle"; Message = "Settings saved. Hold " + settings.Hotkey + " in your target app.";
     }
     private void OnPressed() { if (CanEdit) Start(true); }
-    private async void OnReleased() { if (_recording && _heldRecording) await StopAsync(); }
+    private async void OnReleased() { if (_recording && _heldRecording && !_pillRecording) await StopAsync(); }
+    public bool BeginPillHold()
+    {
+        if (!CanEdit) return false;
+        Start(true);
+        _pillRecording = _recording;
+        return _pillRecording;
+    }
+    public async void EndPillHold()
+    {
+        if (!_pillRecording) return;
+        _pillRecording = false;
+        if (_recording) await StopAsync();
+    }
     private async void OnLimit(object? sender, EventArgs e) { if (_recording) await StopAsync(); }
     private void OnSilenceDetected() => _dispatcher.BeginInvoke(new Action(async () =>
     {

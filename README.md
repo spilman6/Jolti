@@ -23,6 +23,9 @@ Manual **Start in 3 seconds** and the tray's **Start/Stop Dictation** let you re
 
 By default, local voice activity detection also stops a recording after speech has begun and 1.5 seconds of silence. It uses only the captured PCM level, runs in memory, and can be disabled in Settings. Initial silence does not end a recording, and manual/hotkey stop still works.
 
+You can also press and hold the small status pill above the primary taskbar to dictate, then release the mouse button to transcribe. The pill does not activate Jolti, so keep the destination text field focused before pressing it. Releasing outside the pill still stops recording. The tray and hotkey controls continue to work.
+Double-click the pill to open Settings. A brief mouse hold threshold distinguishes dictation from a double-click; a quick single click does nothing.
+
 Spoken editing commands are enabled by default and can be disabled when you need to dictate the command words literally. Supported commands are `comma`, `period`/`full stop`, `question mark`, `exclamation point`/`exclamation mark`, `colon`, `semicolon`, `new line`, `new paragraph`, `bullet point`/`bullet item`, `numbered item`, `end list`, and `scratch that`/`delete that`/`undo that`. Backtracking removes the current thought back to the previous sentence or line boundary. Raw transcript history retains the words Whisper heard; commands affect the final inserted text.
 
 ## Requirements and source build

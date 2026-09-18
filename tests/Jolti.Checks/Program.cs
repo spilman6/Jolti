@@ -148,6 +148,11 @@ internal static class Program
             fakeHotkey.Release(); PumpUntil(() => model.CanEdit);
             Check(model.Status == "Text inserted" && fakePaster.Text == "This is a jolti test transcript.", "Release transcribes, cleans and pastes");
             Check(fakeSound.EndPlays == 1, "End cue plays once after hotkey release");
+            Check(model.BeginPillHold() && fakeAudio.Recording, "Pill hold starts recording without countdown");
+            fakeHotkey.Release();
+            Check(fakeAudio.Recording, "Hotkey release cannot end a pill-held recording");
+            model.EndPillHold(); PumpUntil(() => model.CanEdit);
+            Check(model.Status == "Text inserted" && !fakeAudio.Recording, "Pill release transcribes and inserts text");
             fakeHotkey.Press(); fakeAudio.DetectSilence(); PumpUntil(() => model.CanEdit);
             Check(model.Status == "Text inserted" && !fakeAudio.Recording, "VAD silence event automatically stops and transcribes");
             fakeHotkey.Release();
@@ -274,6 +279,7 @@ internal static class Program
             }
             // Preview the overlay's visual states without showing or capturing any desktop window.
             var indicator = new RecordingIndicator(model);
+            Check(indicator.IsHitTestVisible && !indicator.ShowActivated, "Pill accepts mouse input without activating its window");
             foreach (var state in new[] { "Idle", "Recording", "Transcribing", "Text inserted", "Error" })
             {
                 typeof(MainViewModel).GetProperty(nameof(MainViewModel.Status))!.SetValue(model, state);

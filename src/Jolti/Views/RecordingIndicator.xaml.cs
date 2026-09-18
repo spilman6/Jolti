@@ -4,6 +4,8 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Input;
+using System.Windows.Threading;
 using Jolti.Infrastructure;
 using Jolti.ViewModels;
 namespace Jolti.Views;
@@ -11,6 +13,9 @@ public partial class RecordingIndicator : Window
 {
     private readonly MainViewModel _model;
     private readonly Border[] _bars = new Border[9];
+    private readonly DispatcherTimer _holdDelay = new() { Interval = TimeSpan.FromMilliseconds(200) };
+    private bool _mouseHeld;
+    private bool _pillStarted;
     public RecordingIndicator(MainViewModel viewModel)
     {
         InitializeComponent();
@@ -23,10 +28,13 @@ public partial class RecordingIndicator : Window
         }
         Position();
         UpdateAnimation();
+        _holdDelay.Tick += OnHoldDelay;
         _model.PropertyChanged += OnStatusChanged;
         SystemParameters.StaticPropertyChanged += OnDisplayChanged;
         Closed += (_, _) =>
         {
+            EndPillHold();
+            _holdDelay.Tick -= OnHoldDelay;
             _model.PropertyChanged -= OnStatusChanged;
             SystemParameters.StaticPropertyChanged -= OnDisplayChanged;
             Pill.BeginAnimation(HeightProperty, null);
@@ -36,9 +44,50 @@ public partial class RecordingIndicator : Window
         SourceInitialized += (_, _) =>
         {
             var handle = new WindowInteropHelper(this).Handle;
-            // No-activate, tool-window and transparent styles prevent focus theft and let clicks pass through.
-            NativeMethods.SetWindowLong(handle, -20, NativeMethods.GetWindowLong(handle, -20) | 0x08000000 | 0x80 | 0x20);
+            // Keep the destination focused while the pill receives mouse input.
+            NativeMethods.SetWindowLong(handle, -20, (NativeMethods.GetWindowLong(handle, -20) | 0x08000000 | 0x80) & ~0x20);
         };
+    }
+    private void OnPillDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left) return;
+        if (e.ClickCount >= 2)
+        {
+            EndPillHold();
+            if (Application.Current.MainWindow is MainWindow window) window.ShowSettings();
+            e.Handled = true;
+            return;
+        }
+        if (_mouseHeld || !_model.CanEdit) return;
+        _mouseHeld = true;
+        if (!Pill.CaptureMouse()) EndPillHold();
+        else _holdDelay.Start();
+        e.Handled = true;
+    }
+    private void OnHoldDelay(object? sender, EventArgs e)
+    {
+        _holdDelay.Stop();
+        if (_mouseHeld && Mouse.LeftButton == MouseButtonState.Pressed)
+        {
+            _pillStarted = _model.BeginPillHold();
+            if (!_pillStarted) EndPillHold();
+        }
+    }
+    private void OnPillUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_mouseHeld || e.ChangedButton != MouseButton.Left) return;
+        EndPillHold();
+        e.Handled = true;
+    }
+    private void OnPillCaptureLost(object sender, MouseEventArgs e) => EndPillHold();
+    private void EndPillHold()
+    {
+        if (!_mouseHeld) return;
+        _mouseHeld = false;
+        _holdDelay.Stop();
+        if (_pillStarted) _model.EndPillHold();
+        _pillStarted = false;
+        if (Pill.IsMouseCaptured) Pill.ReleaseMouseCapture();
     }
     private void Position()
     {
