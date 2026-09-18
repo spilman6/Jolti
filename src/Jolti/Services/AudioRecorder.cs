@@ -10,8 +10,10 @@ public sealed class AudioRecorder : IAudioRecorder
     private WaveFileWriter? _writer;
     private TaskCompletionSource<byte[]>? _completion;
     private Exception? _captureError;
+    private VoiceActivityDetector? _vad;
     private readonly object _gate = new();
     public event Action<Exception>? Failed;
+    public event Action? SilenceDetected;
 
     public IReadOnlyList<Microphone> GetMicrophones()
     {
@@ -20,7 +22,7 @@ public sealed class AudioRecorder : IAudioRecorder
         return result;
     }
 
-    public void Start(int microphoneId)
+    public void Start(int microphoneId, bool autoStopOnSilence = true)
     {
         if (_input != null) throw new InvalidOperationException("The microphone is already recording.");
         if (WaveIn.DeviceCount == 0) throw new InvalidOperationException("No microphone found. Connect one and allow desktop microphone access in Windows Settings.");
@@ -31,6 +33,7 @@ public sealed class AudioRecorder : IAudioRecorder
             _stream = new MemoryStream();
             _input = new WaveInEvent { DeviceNumber = microphoneId, WaveFormat = new WaveFormat(16000, 16, 1), BufferMilliseconds = 50 };
             _writer = new WaveFileWriter(_stream, _input.WaveFormat);
+            _vad = autoStopOnSilence ? new VoiceActivityDetector() : null;
             _input.DataAvailable += OnData;
             _input.RecordingStopped += OnStopped;
             _input.StartRecording();
@@ -40,11 +43,17 @@ public sealed class AudioRecorder : IAudioRecorder
 
     private void OnData(object? sender, WaveInEventArgs e)
     {
+        var silenceDetected = false;
         lock (_gate)
         {
-            try { _writer?.Write(e.Buffer, 0, e.BytesRecorded); }
+            try
+            {
+                _writer?.Write(e.Buffer, 0, e.BytesRecorded);
+                silenceDetected = _vad?.AddPcm16(e.Buffer.AsSpan(0, e.BytesRecorded)) == true;
+            }
             catch (Exception ex) { _captureError = ex; _input?.StopRecording(); }
         }
+        if (silenceDetected) SilenceDetected?.Invoke();
     }
 
     private void OnStopped(object? sender, StoppedEventArgs e)
@@ -52,6 +61,7 @@ public sealed class AudioRecorder : IAudioRecorder
         var error = e.Exception ?? _captureError;
         lock (_gate)
         {
+            _vad = null;
             try
             {
                 if (error != null) _completion?.TrySetException(error);

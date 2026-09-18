@@ -9,6 +9,9 @@ public sealed class AppSettings
     public bool CleanupEnabled { get; set; } = true;
     public bool SaveHistory { get; set; }
     public bool RecordingSoundEnabled { get; set; } = true;
+    public bool MutePlaybackWhileRecording { get; set; }
+    public bool AutoStopOnSilence { get; set; } = true;
+    public bool SpokenCommandsEnabled { get; set; } = true;
 }
 
 public sealed record Microphone(int Id, string Name);
@@ -16,9 +19,10 @@ public sealed record HistoryEntry(Guid Id, DateTimeOffset Date, string RawTransc
 public interface IAudioRecorder : IDisposable
 {
     IReadOnlyList<Microphone> GetMicrophones();
-    void Start(int microphoneId);
+    void Start(int microphoneId, bool autoStopOnSilence = true);
     Task<byte[]> StopAsync();
     event Action<Exception>? Failed;
+    event Action? SilenceDetected;
 }
 public interface ITranscriptionService
 {
@@ -29,6 +33,11 @@ public interface IRecordingSoundService
 {
     Task PlayStartAsync(CancellationToken cancellationToken);
     Task PlayEndAsync(CancellationToken cancellationToken);
+}
+public interface IPlaybackMuter : IDisposable
+{
+    void Mute();
+    void Restore();
 }
 public interface IConfigurableTranscriptionService : ITranscriptionService
 {

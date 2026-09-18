@@ -21,6 +21,10 @@ The first transcription loads the model. CPU processing can take several seconds
 
 Manual **Start in 3 seconds** and the tray's **Start/Stop Dictation** let you record without holding keys. Focus your destination during the countdown and stop through the tray. Sessions stop after two minutes. Closing the window hides it; use tray **Exit** to quit.
 
+By default, local voice activity detection also stops a recording after speech has begun and 1.5 seconds of silence. It uses only the captured PCM level, runs in memory, and can be disabled in Settings. Initial silence does not end a recording, and manual/hotkey stop still works.
+
+Spoken editing commands are enabled by default and can be disabled when you need to dictate the command words literally. Supported commands are `comma`, `period`/`full stop`, `question mark`, `exclamation point`/`exclamation mark`, `colon`, `semicolon`, `new line`, `new paragraph`, `bullet point`/`bullet item`, `numbered item`, `end list`, and `scratch that`/`delete that`/`undo that`. Backtracking removes the current thought back to the previous sentence or line boundary. Raw transcript history retains the words Whisper heard; commands affect the final inserted text.
+
 ## Requirements and source build
 
 - Windows 10/11 x64, microphone, and desktop microphone access enabled under Windows Settings > Privacy & security > Microphone.
@@ -131,6 +135,7 @@ Validation for this refresh: Release build succeeded with no warnings or errors;
 
 Closing with X or choosing **Hide to tray** keeps dictation running. A notification explains this on the first close. If the tray icon is hidden, open the Windows **^** menu beside the clock. Left-click Jolti to reopen it; right-click and choose **Exit** to quit.
 Recording sounds: the bundled bloop.mp3 plays on both start and stop. The stop cue begins after microphone capture finishes. The Recording sounds setting controls both cues; bloop_end.mp3 is no longer bundled.
+Settings > Mute playback while recording silences the current default Windows output device after the start cue finishes and restores its previous mute state when capture ends, fails, or Jolti exits. This setting is off by default. Playback remains audible for the brief start cue, which may enter the microphone through speakers. The stop cue plays after playback is restored. Apps keep playing in the background, so their playback position advances while muted. If you switch output devices mid-recording, the new device is not automatically muted.
 Performance: model verification happens at launch and the read-only sharing lease remains held until the provider/model changes or Jolti exits. The first transcription loads native model weights; later dictations reuse them. This uses more idle RAM and prevents replacing the model file while Jolti is using it. Speech context is not reused.
 
 ## Personal dictionary

@@ -28,6 +28,7 @@ public partial class App : Application
         services.AddSingleton<ISnippetRepository>(s => s.GetRequiredService<LocalStorage>());
         services.AddSingleton<IAudioRecorder, AudioRecorder>();
         services.AddSingleton<IRecordingSoundService, RecordingSoundService>();
+        services.AddSingleton<IPlaybackMuter, PlaybackMuter>();
         services.AddSingleton<ITranscriptionService, WhisperTranscriptionService>();
         services.AddSingleton<ITextCleanupService, TextCleanupService>();
         services.AddSingleton<ITextPaster, TextPaster>();

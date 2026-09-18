@@ -83,6 +83,18 @@ internal static class Program
             Check(cleanup.Clean("hello! how are you?") == "Hello! How are you?", "Sentence boundaries and existing punctuation");
             Check(cleanup.Clean("umbrella ultimate") == "Umbrella ultimate.", "Filler matching preserves words");
             Check(cleanup.Clean("um uh erm") == "", "Empty result after filler removal");
+            Check(SpokenCommands.Apply(cleanup.Clean("hello comma world question mark")) == "Hello, world?", "Spoken punctuation commands");
+            Check(SpokenCommands.Apply(cleanup.Clean("keep this. remove this scratch that replacement")) == "Keep this. replacement.", "Spoken backtracking removes the current thought");
+            Check(SpokenCommands.Apply(cleanup.Clean("shopping bullet point apples bullet point pears")) == "Shopping\n• apples\n• pears.", "Spoken bullet list commands");
+            Check(SpokenCommands.Apply(cleanup.Clean("steps numbered item mix numbered item bake")) == "Steps\n1. mix\n2. bake.", "Spoken numbered list commands");
+            var vad = new VoiceActivityDetector();
+            var speechFrame = Enumerable.Repeat((byte)0x20, 1600).ToArray();
+            var silenceFrame = new byte[1600];
+            Check(!vad.AddPcm16(silenceFrame), "VAD does not stop before speech begins");
+            for (var i = 0; i < 4; i++) vad.AddPcm16(speechFrame);
+            var vadStopped = false;
+            for (var i = 0; i < 30; i++) vadStopped |= vad.AddPcm16(silenceFrame);
+            Check(vadStopped, "VAD stops after speech followed by 1.5 seconds of silence");
             var rules = new[] { new DictionaryEntry(Guid.NewGuid(), "jolty", "Jolti"), new DictionaryEntry(Guid.NewGuid(), "fox valley", "FVTC"), new DictionaryEntry(Guid.NewGuid(), "fox", "Fox"), new DictionaryEntry(Guid.NewGuid(), "Jolti", "Other") };
             Check(DictionaryCorrections.Apply("JOLTY, fox valley! foxy.", rules) == "Jolti, FVTC! foxy.", "Dictionary matches whole words, longest phrase and does not cascade");
             Check(DictionaryCorrections.Apply("c++ and anne", new[] { new DictionaryEntry(Guid.NewGuid(), "c++", "C++"), new DictionaryEntry(Guid.NewGuid(), "anne", "$Ann") }) == "C++ and $Ann", "Dictionary treats punctuation and replacement characters literally");
@@ -110,8 +122,9 @@ internal static class Program
             application.Resources = (ResourceDictionary)Application.LoadComponent(new Uri("/Jolti;component/Views/Styles.xaml", UriKind.Relative));
             var fakeAudio = new TestAudio(); var fakeHotkey = new TestHotkey(); var fakePaster = new TestPaster();
             var fakeSound = new TestSound();
+            var fakePlayback = new TestPlaybackMuter();
             storage.Save(new AppSettings { TranscriptionMode = "Fake (test only)" });
-            using var model = new MainViewModel(fakeAudio, new FakeTranscriptionService(), cleanup, fakePaster, fakeHotkey, storage, history, fakeSound);
+            using var model = new MainViewModel(fakeAudio, new FakeTranscriptionService(), cleanup, fakePaster, fakeHotkey, storage, history, fakeSound, playbackMuter: fakePlayback);
             model.Initialize();
             var originalModelPath = model.ModelPath;
             foreach (var choice in model.AvailableModels)
@@ -135,6 +148,27 @@ internal static class Program
             fakeHotkey.Release(); PumpUntil(() => model.CanEdit);
             Check(model.Status == "Text inserted" && fakePaster.Text == "This is a jolti test transcript.", "Release transcribes, cleans and pastes");
             Check(fakeSound.EndPlays == 1, "End cue plays once after hotkey release");
+            fakeHotkey.Press(); fakeAudio.DetectSilence(); PumpUntil(() => model.CanEdit);
+            Check(model.Status == "Text inserted" && !fakeAudio.Recording, "VAD silence event automatically stops and transcribes");
+            fakeHotkey.Release();
+            model.MutePlaybackWhileRecording = true;
+            Check(model.SettingsNote.Contains("unsaved"), "Playback mute setting is a draft until saved");
+            model.SaveSettingsCommand.Execute(null);
+            Check(storage.Load().MutePlaybackWhileRecording, "Playback mute setting persists");
+            var startCues = fakeSound.Plays;
+            fakeSound.PendingStart = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            fakeHotkey.Press();
+            Check(!fakePlayback.Muted && fakeSound.Plays == startCues + 1, "Start cue plays before playback is muted");
+            fakeSound.PendingStart.SetResult(); fakeSound.PendingStart = null;
+            PumpUntil(() => fakePlayback.Muted);
+            Check(fakePlayback.Mutes == 1, "Playback mutes when start cue finishes");
+            fakeHotkey.Release(); PumpUntil(() => model.CanEdit);
+            Check(!fakePlayback.Muted && fakePlayback.Restores == 1, "Playback restores after capture");
+            fakeAudio.StopFail = true;
+            fakeHotkey.Press(); fakeHotkey.Release(); PumpUntil(() => model.CanEdit);
+            Check(!fakePlayback.Muted && fakePlayback.Restores == 2 && model.Status == "Error", "Playback restores when microphone stop fails");
+            fakeAudio.StopFail = false;
+            model.MutePlaybackWhileRecording = false; model.SaveSettingsCommand.Execute(null);
             Check(history.Load().Count == 0, "History disabled means no transcript file");
             fakeSound.Fail = true;
             fakeHotkey.Press();
@@ -276,11 +310,13 @@ internal static class Program
     }
     private sealed class TestAudio : IAudioRecorder
     {
-        public bool Recording, Fail; public int Starts;
+        public bool Recording, Fail, StopFail; public int Starts;
         public event Action<Exception>? Failed { add { } remove { } }
+        public event Action? SilenceDetected;
         public IReadOnlyList<Microphone> GetMicrophones() => [new(-1, "Test microphone")];
-        public void Start(int id) { if (Fail) throw new IOException("Test device failure"); Recording = true; Starts++; }
-        public Task<byte[]> StopAsync() { Recording = false; return Task.FromResult(new byte[100]); }
+        public void Start(int id, bool autoStopOnSilence = true) { if (Fail) throw new IOException("Test device failure"); Recording = true; Starts++; }
+        public void DetectSilence() => SilenceDetected?.Invoke();
+        public Task<byte[]> StopAsync() { Recording = false; return StopFail ? Task.FromException<byte[]>(new IOException("Test stop failure")) : Task.FromResult(new byte[100]); }
         public void Dispose() { }
     }
     private sealed class TestSound : IRecordingSoundService
@@ -288,8 +324,17 @@ internal static class Program
         public int Plays;
         public int EndPlays;
         public bool Fail;
-        public Task PlayStartAsync(CancellationToken token) { Plays++; if (Fail) throw new IOException("Test speaker failure"); return Task.CompletedTask; }
+        public TaskCompletionSource? PendingStart;
+        public Task PlayStartAsync(CancellationToken token) { Plays++; if (Fail) throw new IOException("Test speaker failure"); return PendingStart?.Task ?? Task.CompletedTask; }
         public Task PlayEndAsync(CancellationToken token) { EndPlays++; if (Fail) throw new IOException("Test speaker failure"); return Task.CompletedTask; }
+    }
+    private sealed class TestPlaybackMuter : IPlaybackMuter
+    {
+        public bool Muted;
+        public int Mutes, Restores;
+        public void Mute() { Muted = true; Mutes++; }
+        public void Restore() { if (Muted) { Muted = false; Restores++; } }
+        public void Dispose() => Restore();
     }
     private sealed class TestInput : ITextInputBackend
     {

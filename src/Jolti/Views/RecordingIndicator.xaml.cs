@@ -57,12 +57,12 @@ public partial class RecordingIndicator : Window
         var recording = _model.Status == "Recording";
         var processing = _model.Status == "Transcribing";
         // Reserve transparent space so expansion keeps the center and bottom edge anchored.
-        // Must fit the largest pill size (40x16) plus the 6px margin on every side.
-        Width = 52;
-        Height = 28;
+        // Must fit the largest pill size (44x20) plus the 6px margin on every side.
+        Width = 56;
+        Height = 32;
         Pill.BeginAnimation(WidthProperty, null);
-        Pill.Width = 40;
-        var targetHeight = recording ? 16d : 10d;
+        Pill.Width = recording ? 44 : 40;
+        var targetHeight = recording ? 20d : 10d;
         var currentHeight = Pill.Height;
         Pill.BeginAnimation(HeightProperty, null);
         Pill.Height = targetHeight;
@@ -75,7 +75,8 @@ public partial class RecordingIndicator : Window
                 FillBehavior = FillBehavior.Stop
             });
         }
-        Pill.Padding = new Thickness(4, 1, 4, 1);
+        Pill.CornerRadius = new CornerRadius(recording ? 6 : 3);
+        Pill.Padding = recording ? new Thickness(5, 2, 5, 2) : new Thickness(4, 1, 4, 1);
         DotHalo.Width = DotHalo.Height = 4;
         DotHalo.Margin = new Thickness(0, 0, 3, 0);
         StatusDot.Width = StatusDot.Height = 3;
