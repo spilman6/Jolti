@@ -10,11 +10,11 @@ A private, local Windows voice dictation app built with C# / .NET 8 / WPF. Hold 
 2. On a fresh clone, install the .NET 8 SDK and publish first. Generated builds and model weights are not included in Git:
 
 ```powershell
-dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-0.0.3-win-x64
+dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-vad-win-x64
 .\Start-Jolti.ps1
 ```
 
-Or launch `artifacts/publish/jolti-0.0.3-win-x64/Jolti.exe` directly. Keep the entire publish folder together. It includes .NET 8 and the native CPU runtime. Download a model in Settings before your first dictation.
+Or launch `artifacts/publish/jolti-vad-win-x64/Jolti.exe` directly. Keep the entire publish folder together. It includes .NET 8 and the native CPU runtime. Download a model in Settings before your first dictation.
 
 3. Open **Settings**, choose Base, Small, or Medium English and click **Download selected model** if needed, then choose **Local Whisper** under Transcription mode, and click **Save settings**. Existing settings preserve your old Fake mode until you change it. The model path defaults to `%LOCALAPPDATA%\Jolti\models\ggml-base.en.bin`. Choose a model from the Whisper model dropdown to update an older saved path. Paths outside this folder are rejected.
 4. Focus an ordinary text field in Notepad. Hold **Ctrl + Win**, speak clearly, and release both keys. Remain in that app while processing. Your actual words should appear.
@@ -29,6 +29,24 @@ You can also press and hold the small status pill above the primary taskbar to d
 Double-click the pill to open Settings. A brief mouse hold threshold distinguishes dictation from a double-click; a quick single click does nothing.
 
 Spoken editing commands are enabled by default and can be disabled when you need to dictate the command words literally. Supported commands are `comma`, `period`/`full stop`, `question mark`, `exclamation point`/`exclamation mark`, `colon`, `semicolon`, `new line`, `new paragraph`, `bullet point`/`bullet item`, `numbered item`, `end list`, and `scratch that`/`delete that`/`undo that`. Backtracking removes the current thought back to the previous sentence or line boundary. Raw transcript history retains the words Whisper heard; commands affect the final inserted text.
+
+## Publish updates and push to GitHub
+
+Your startup shortcut can keep pointing to `artifacts/publish/jolti-vad-win-x64/Jolti.exe`. This is now the fixed install folder, even as the version number changes.
+
+Run from the repository (Jolti is stopped automatically after the build succeeds):
+
+```powershell
+.\Publish-Jolti.ps1 -Message "Describe your changes"
+```
+
+The script builds a self-contained Release version in a staging folder, stops any running Jolti process, replaces the fixed install folder, commits all nonignored repository changes, and pushes the current branch to `origin`. The commit message is optional; it defaults to a timestamp. With no source changes, it still publishes and pushes existing commits. It does not increment the app version automatically.
+
+Finish any recording or transcription before publishing: stopping Jolti discards work in progress. Jolti remains running if the build fails, and remains closed after a successful update.
+
+The previous installed build is retained in a timestamped `artifacts/publish/backup-*` folder. A build failure leaves the installed version unchanged. If committing or pushing fails, the updated local build and any completed commit remain; fix the reported error and rerun. The script does not force-push or resolve remote conflicts. Build output stays excluded from Git. Git credentials and NuGet access must be available.
+
+Run `.\Start-Jolti.ps1` afterward to launch the updated app. Future Windows sign-ins use the same startup shortcut. Old backup folders can be removed when you no longer need them.
 
 ## Requirements and source build
 
@@ -54,7 +72,7 @@ To obtain the English model again, explicitly run:
 This downloads about 148 MB from the [whisper.cpp model repository](https://huggingface.co/ggerganov/whisper.cpp) and verifies SHA-256 before accepting it. No audio or transcripts are sent. Settings also offers explicit model downloads. There is no automatic model acquisition or cloud fallback.
 
 ```powershell
-dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-0.0.3-win-x64
+dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-vad-win-x64
 .\scripts\Install-WhisperModel.ps1 -Source artifacts/models/ggml-base.en.bin
 ```
 
