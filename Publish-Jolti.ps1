@@ -1,5 +1,6 @@
 [CmdletBinding()]
 param(
+    [Parameter(Position = 0)]
     [string]$Message = ('Publish Jolti - ' + (Get-Date -Format 'yyyy-MM-dd HH:mm'))
 )
 

@@ -37,10 +37,10 @@ Your startup shortcut can keep pointing to `artifacts/publish/jolti-vad-win-x64/
 Run from the repository (Jolti is stopped automatically after the build succeeds):
 
 ```powershell
-.\Publish-Jolti.ps1 -Message "Describe your changes"
+.\publish.ps1 "Describe your changes"
 ```
 
-The script builds a self-contained Release version in a staging folder, stops any running Jolti process, replaces the fixed install folder, commits all nonignored repository changes, and pushes the current branch to `origin`. The commit message is optional; it defaults to a timestamp. With no source changes, it still publishes and pushes existing commits. It does not increment the app version automatically.
+The script builds a self-contained Release version in a staging folder, stops any running Jolti process, replaces the fixed install folder, commits all nonignored repository changes, and pushes the current branch to `origin`. The commit message is optional; it defaults to a timestamp. Both `.\publish.ps1 "Describe your changes"` and `.\Publish-Jolti.ps1 -Message "Describe your changes"` work. With no source changes, it still publishes and pushes existing commits. It does not increment the app version automatically.
 
 Finish any recording or transcription before publishing: stopping Jolti discards work in progress. Jolti remains running if the build fails, and starts automatically after publishing and pushing succeed.
 
