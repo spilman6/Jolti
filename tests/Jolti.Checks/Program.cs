@@ -25,6 +25,21 @@ internal static class Program
                 var samples = new float[4096];
                 Check(cue.TotalTime.TotalSeconds > 0 && cue.TotalTime.TotalSeconds < 10 && cue.Read(samples, 0, samples.Length) > 0, "Bundled bloop decodes as a short local audio cue");
             }
+            var cursorShows = 0;
+            var cursorRestores = 0;
+            var busyCursor = new BusyCursorService(() => { cursorShows++; return true; }, () => { cursorRestores++; return true; });
+            busyCursor.SetBusy(true); busyCursor.SetBusy(true);
+            Check(cursorShows == 1 && cursorRestores == 0, "Repeated processing notifications preserve the busy cursor");
+            busyCursor.SetBusy(false); busyCursor.SetBusy(false);
+            Check(cursorRestores == 1, "Processing completion restores the cursor once");
+            busyCursor.SetBusy(true); busyCursor.Dispose(); busyCursor.SetBusy(true);
+            Check(cursorShows == 2 && cursorRestores == 2, "App exit restores an active cursor and blocks later updates");
+            using (var failedCursor = new BusyCursorService(() => false, () => { cursorRestores++; return true; }))
+                failedCursor.SetBusy(true);
+            Check(cursorRestores == 3, "Partial cursor setup failure restores the user's scheme");
+            using (var throwingCursor = new BusyCursorService(() => throw new InvalidOperationException("cursor error"), () => { cursorRestores++; return true; }))
+                throwingCursor.SetBusy(true);
+            Check(cursorRestores == 4, "Cursor errors restore the scheme without interrupting dictation");
             var input = new TestInput();
             var direct = new TextPaster(input);
             var unicode = "Hello é 世界 👋\nnext";
@@ -126,7 +141,7 @@ internal static class Program
             storage.Save(new AppSettings { TranscriptionMode = "Fake (test only)" });
             using var model = new MainViewModel(fakeAudio, new FakeTranscriptionService(), cleanup, fakePaster, fakeHotkey, storage, history, fakeSound, playbackMuter: fakePlayback);
             model.Initialize();
-            Check(model.BuildVersion == "0.0.3" && model.AppVersion == "Version 0.0.3" && model.BuildLabel == "Build 0.0.3" && model.WindowTitle.Contains("Version 0.0.3"), "Build badge and version come from the running assembly");
+            Check(model.BuildVersion == "0.0.4" && model.AppVersion == "Version 0.0.4" && model.BuildLabel == "Build 0.0.4" && model.WindowTitle.Contains("Version 0.0.4"), "Build badge and version come from the running assembly");
             var originalModelPath = model.ModelPath;
             foreach (var choice in model.AvailableModels)
             {

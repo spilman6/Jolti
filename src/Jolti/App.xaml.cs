@@ -15,11 +15,13 @@ public partial class App : Application
     private Icon? _trayIcon;
     private Mutex? _instance;
     private bool _ownsMutex;
+    private BusyCursorService? _busyCursor;
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
         _instance = new Mutex(true, "Jolti.Desktop.SingleInstance", out _ownsMutex);
         if (!_ownsMutex) { MessageBox.Show("Jolti is already running. Open it from the system tray.", "Jolti"); Shutdown(); return; }
+        _busyCursor = new BusyCursorService();
         var services = new ServiceCollection();
         services.AddSingleton<LocalStorage>();
         services.AddSingleton<ISettingsStore>(s => s.GetRequiredService<LocalStorage>());
@@ -63,10 +65,16 @@ public partial class App : Application
                 Forms.ToolTipIcon.Info);
         };
         model.PropertyChanged += (_, args) => { if (args.PropertyName == nameof(model.Status) && _tray != null) _tray.Text = model.WindowTitle + " · " + model.Status; };
+        model.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(model.IsProcessing))
+                _busyCursor?.SetBusy(model.IsProcessing);
+        };
         window.Show(); _services.GetRequiredService<RecordingIndicator>().Show(); model.Initialize();
     }
     protected override void OnExit(ExitEventArgs e)
     {
+        _busyCursor?.Dispose(); _busyCursor = null;
         _tray?.Dispose(); _tray = null;
         _trayIcon?.Dispose(); _trayIcon = null;
         _services?.Dispose();

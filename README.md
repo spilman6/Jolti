@@ -1,6 +1,6 @@
 # Jolti
 
-Feature/build number: **0.0.3**. It appears as Build 0.0.3 on the Dictation page and Version 0.0.3 in Settings, the window title, and the tray tooltip. The number is read from the running executable. For each future feature release, increment the final number in `src/Jolti/Jolti.csproj` by one (0.0.4, 0.0.5, and so on), then publish a new build. This counter is separate from saved settings and does not change merely because the source files changed.
+Feature/build number: **0.0.4**. It appears as Build 0.0.4 on the Dictation page and Version 0.0.4 in Settings, the window title, and the tray tooltip. The number is read from the running executable. For each future feature release, increment the final number in `src/Jolti/Jolti.csproj` by one (0.0.5, 0.0.6, and so on), then publish a new build. This counter is separate from saved settings and does not change merely because the source files changed.
 
 A private, local Windows voice dictation app built with C# / .NET 8 / WPF. Hold **Ctrl + Win**, speak, and release to transcribe with local Whisper, clean up the text, and type it directly into the focused app without touching your clipboard. No audio leaves your device.
 
@@ -180,3 +180,5 @@ Saved text preserves capitalization, spacing, tabs, and line breaks, including w
 Validation for snippets: Release build completed with zero warnings and errors; all 65 regression checks passed on the bundled .NET 8 runtime. All six pages rendered, and the Snippets page was visually inspected. Live microphone-to-target acceptance remains a manual check. The launcher now opens the snippets portable build; exit the previous tray instance before restarting.
 
 Jolti's main window stays on top of other application windows while visible. Minimize or Hide to tray to get it out of the way.
+
+While transcribing and inserting text, Jolti shows the Windows busy cursor in place of standard arrow, text, and link pointers across applications. Completion, cancellation, errors, and normal app exit restore your configured cursor scheme. Apps that draw custom cursors may keep their own pointer. A forced process stop can leave the busy pointer until Jolti restarts (startup reloads the cursor scheme).
