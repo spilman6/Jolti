@@ -47,7 +47,7 @@ public partial class App : Application
         using (var iconStream = iconResource.Stream)
         using (var sourceIcon = new Icon(iconStream, 32, 32))
             _trayIcon = (Icon)sourceIcon.Clone();
-        _tray = new Forms.NotifyIcon { Icon = _trayIcon, Text = "Jolti · Idle", Visible = true, ContextMenuStrip = menu };
+        _tray = new Forms.NotifyIcon { Icon = _trayIcon, Text = model.WindowTitle + " · Idle", Visible = true, ContextMenuStrip = menu };
         _tray.MouseClick += (_, args) =>
         {
             if (args.Button == Forms.MouseButtons.Left) Dispatcher.Invoke(window.RestoreFromTray);
@@ -62,7 +62,7 @@ public partial class App : Application
                 "Use your hotkey to dictate. Find Jolti in the tray or hidden icons (^). Right-click and choose Exit to quit.",
                 Forms.ToolTipIcon.Info);
         };
-        model.PropertyChanged += (_, args) => { if (args.PropertyName == nameof(model.Status) && _tray != null) _tray.Text = "Jolti · " + model.Status; };
+        model.PropertyChanged += (_, args) => { if (args.PropertyName == nameof(model.Status) && _tray != null) _tray.Text = model.WindowTitle + " · " + model.Status; };
         window.Show(); _services.GetRequiredService<RecordingIndicator>().Show(); model.Initialize();
     }
     protected override void OnExit(ExitEventArgs e)

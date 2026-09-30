@@ -38,6 +38,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public string ModelPath { get => _modelPath; set { Set(ref _modelPath, value); Notify(nameof(SelectedModel)); RefreshModelState(true); SettingsChanged(); } }
     public string ActiveHotkey => _saved.Hotkey;
     public bool IsTestMode => _saved.TranscriptionMode == "Fake (test only)";
+    public string BuildVersion => typeof(MainViewModel).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
+    public string AppVersion => $"Version {BuildVersion}";
+    public string BuildLabel => $"Build {BuildVersion}";
+    public string WindowTitle => $"Jolti · {AppVersion}";
     public bool IsProcessing => _busy;
     public bool HasResult => !string.IsNullOrWhiteSpace(FinalText);
     public string HistoryNote => _saved.SaveHistory ? "New transcripts are saved on this device." : "History is off. Turn it on in Settings to save future transcripts.";

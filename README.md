@@ -1,5 +1,7 @@
 # Jolti
 
+Feature/build number: **0.0.3**. It appears as Build 0.0.3 on the Dictation page and Version 0.0.3 in Settings, the window title, and the tray tooltip. The number is read from the running executable. For each future feature release, increment the final number in `src/Jolti/Jolti.csproj` by one (0.0.4, 0.0.5, and so on), then publish a new build. This counter is separate from saved settings and does not change merely because the source files changed.
+
 A private, local Windows voice dictation app built with C# / .NET 8 / WPF. Hold **Ctrl + Win**, speak, and release to transcribe with local Whisper, clean up the text, and type it directly into the focused app without touching your clipboard. No audio leaves your device.
 
 ## Build and run
@@ -8,11 +10,11 @@ A private, local Windows voice dictation app built with C# / .NET 8 / WPF. Hold 
 2. On a fresh clone, install the .NET 8 SDK and publish first. Generated builds and model weights are not included in Git:
 
 ```powershell
-dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-settings-spacing-win-x64
+dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-0.0.3-win-x64
 .\Start-Jolti.ps1
 ```
 
-Or launch `artifacts/publish/jolti-settings-spacing-win-x64/Jolti.exe` directly. Keep the entire publish folder together. It includes .NET 8 and the native CPU runtime. Download a model in Settings before your first dictation.
+Or launch `artifacts/publish/jolti-0.0.3-win-x64/Jolti.exe` directly. Keep the entire publish folder together. It includes .NET 8 and the native CPU runtime. Download a model in Settings before your first dictation.
 
 3. Open **Settings**, choose Base, Small, or Medium English and click **Download selected model** if needed, then choose **Local Whisper** under Transcription mode, and click **Save settings**. Existing settings preserve your old Fake mode until you change it. The model path defaults to `%LOCALAPPDATA%\Jolti\models\ggml-base.en.bin`. Choose a model from the Whisper model dropdown to update an older saved path. Paths outside this folder are rejected.
 4. Focus an ordinary text field in Notepad. Hold **Ctrl + Win**, speak clearly, and release both keys. Remain in that app while processing. Your actual words should appear.
@@ -52,7 +54,7 @@ To obtain the English model again, explicitly run:
 This downloads about 148 MB from the [whisper.cpp model repository](https://huggingface.co/ggerganov/whisper.cpp) and verifies SHA-256 before accepting it. No audio or transcripts are sent. Settings also offers explicit model downloads. There is no automatic model acquisition or cloud fallback.
 
 ```powershell
-dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-settings-spacing-win-x64
+dotnet publish src/Jolti/Jolti.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/jolti-0.0.3-win-x64
 .\scripts\Install-WhisperModel.ps1 -Source artifacts/models/ggml-base.en.bin
 ```
 
@@ -158,3 +160,5 @@ Triggers match whole words and phrases, ignoring case, after cleanup and diction
 Saved text preserves capitalization, spacing, tabs, and line breaks, including when cleanup is enabled. Destination apps may handle tabs or newlines differently. Up to 500 snippets, with triggers of 120 characters and expansions of 4,000 characters, are stored locally as plain JSON in `%LOCALAPPDATA%\Jolti\snippets.json`. No additional model or network access is used. Delete All History preserves snippets; delete them on the Snippets page. Optional history records the original transcript and the expanded final text.
 
 Validation for snippets: Release build completed with zero warnings and errors; all 65 regression checks passed on the bundled .NET 8 runtime. All six pages rendered, and the Snippets page was visually inspected. Live microphone-to-target acceptance remains a manual check. The launcher now opens the snippets portable build; exit the previous tray instance before restarting.
+
+Jolti's main window stays on top of other application windows while visible. Minimize or Hide to tray to get it out of the way.

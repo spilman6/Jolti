@@ -126,6 +126,7 @@ internal static class Program
             storage.Save(new AppSettings { TranscriptionMode = "Fake (test only)" });
             using var model = new MainViewModel(fakeAudio, new FakeTranscriptionService(), cleanup, fakePaster, fakeHotkey, storage, history, fakeSound, playbackMuter: fakePlayback);
             model.Initialize();
+            Check(model.BuildVersion == "0.0.3" && model.AppVersion == "Version 0.0.3" && model.BuildLabel == "Build 0.0.3" && model.WindowTitle.Contains("Version 0.0.3"), "Build badge and version come from the running assembly");
             var originalModelPath = model.ModelPath;
             foreach (var choice in model.AvailableModels)
             {

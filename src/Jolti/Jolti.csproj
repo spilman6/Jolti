@@ -6,6 +6,8 @@
     <RootNamespace>Jolti</RootNamespace>
     <Product>Jolti</Product>
     <Title>Jolti</Title>
+    <!-- Increment the final number by one for each new feature release. -->
+    <Version>0.0.3</Version>
     <ApplicationIcon>Assets\Jolti.ico</ApplicationIcon>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
