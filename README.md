@@ -42,11 +42,11 @@ Run from the repository (Jolti is stopped automatically after the build succeeds
 
 The script builds a self-contained Release version in a staging folder, stops any running Jolti process, replaces the fixed install folder, commits all nonignored repository changes, and pushes the current branch to `origin`. The commit message is optional; it defaults to a timestamp. With no source changes, it still publishes and pushes existing commits. It does not increment the app version automatically.
 
-Finish any recording or transcription before publishing: stopping Jolti discards work in progress. Jolti remains running if the build fails, and remains closed after a successful update.
+Finish any recording or transcription before publishing: stopping Jolti discards work in progress. Jolti remains running if the build fails, and starts automatically after publishing and pushing succeed.
 
 The previous installed build is retained in a timestamped `artifacts/publish/backup-*` folder. A build failure leaves the installed version unchanged. If committing or pushing fails, the updated local build and any completed commit remain; fix the reported error and rerun. The script does not force-push or resolve remote conflicts. Build output stays excluded from Git. Git credentials and NuGet access must be available.
 
-Run `.\Start-Jolti.ps1` afterward to launch the updated app. Future Windows sign-ins use the same startup shortcut. Old backup folders can be removed when you no longer need them.
+The script launches the updated app automatically at the end. If publishing stops with an error after closing Jolti, you can run `.\Start-Jolti.ps1` to open it manually. Future Windows sign-ins use the same startup shortcut. Old backup folders can be removed when you no longer need them.
 
 ## Requirements and source build
 

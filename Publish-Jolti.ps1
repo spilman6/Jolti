@@ -106,7 +106,8 @@ try {
     Write-Host "Pushing $branch to origin..."
     Invoke-Git -GitArgs @('push', '--set-upstream', 'origin', $branch)
     Write-Host 'Published, committed, and pushed. Your existing startup shortcut is ready.'
-    Write-Host 'Run .\Start-Jolti.ps1 to open Jolti now.'
+    Write-Host 'Starting Jolti...'
+    Start-Process -FilePath (Join-Path $target 'Jolti.exe') -WorkingDirectory $target
 }
 catch {
     Write-Warning 'Publishing stopped. Any completed local build update or commit is retained; you can fix the error and rerun the script.'
